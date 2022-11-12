@@ -1,0 +1,20 @@
+name: Terraform Lint
+
+on: [workflow_call]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - uses: hashicorp/setup-terraform@v1
+
+      - name: fmt
+        run: terraform fmt -check -recursive
+
+      - name: Validate
+        run: |
+          terraform init -backend=false >/dev/null
+          terraform validate -no-color

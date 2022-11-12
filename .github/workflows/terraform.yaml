@@ -1,0 +1,10 @@
+name: Terraform
+
+on: [workflow_call]
+
+jobs:
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
