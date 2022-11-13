@@ -24,7 +24,7 @@ jobs:
       fail-fast: false
       matrix:
         env: ${{ fromJSON(needs.configure.outputs.envs) }}
-    concurrency: ${{ github.repository }}:${{ matrix.env.name }}
+    concurrency: ${{ github.repository }}:${{ github.workflow }}:${{ matrix.env.name }}
     env:
       PROJECT_ID_DEV: ${{ secrets.HOORY_DEV_PROJECT_ID }}
       PROJECT_ID_PRO: ${{ secrets.HOORY_PROD_PROJECT_ID }}
@@ -37,15 +37,15 @@ jobs:
       - name: Export Credentials
         run: |
           echo "GOOGLE_BACKEND_CREDENTIALS=$TF_SERVICE_ACCOUNT_DEV" >>$GITHUB_ENV
-          case ${{ matrix.env.name }} in
+          case '${{ matrix.env.name }}' in
           'dev' | 'stage')
-              echo "GOOGLE_PROJECT=$PROJECT_ID_DEV" >>$GITHUB_ENV
-              echo "GOOGLE_CREDENTIALS=$TF_SERVICE_ACCOUNT_DEV" >>$GITHUB_ENV
-              ;;
+            echo "GOOGLE_PROJECT=$PROJECT_ID_DEV" >>$GITHUB_ENV
+            echo "GOOGLE_CREDENTIALS=$TF_SERVICE_ACCOUNT_DEV" >>$GITHUB_ENV
+            ;;
           'prod')
-              echo "GOOGLE_PROJECT=$PROJECT_ID_PRO" >>$GITHUB_ENV
-              echo "GOOGLE_CREDENTIALS=$TF_SERVICE_ACCOUNT_PROD" >>$GITHUB_ENV
-              ;;
+            echo "GOOGLE_PROJECT=$PROJECT_ID_PRO" >>$GITHUB_ENV
+            echo "GOOGLE_CREDENTIALS=$TF_SERVICE_ACCOUNT_PROD" >>$GITHUB_ENV
+            ;;
           esac
 
       - name: Touch override.tf
@@ -55,7 +55,6 @@ jobs:
             region  = "eu-west1"
             zone    = "eu-west1-b"
           }
-
           terraform {
             backend "gcs" {
               bucket = "tf-state-hoory-com"
