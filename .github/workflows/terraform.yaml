@@ -37,13 +37,13 @@ jobs:
 
       - name: Export Credentials
         run: |
-          echo "GOOGLE_BACKEND_CREDENTIALS=${{ secrets.TF_SERVICE_ACCOUNT_DEV }}" >>$GITHUB_ENV
+          echo "GOOGLE_BACKEND_CREDENTIALS='${{ secrets.TF_SERVICE_ACCOUNT_DEV }}'" >>$GITHUB_ENV
           case '${{ matrix.env }}' in
           'dev' | 'stage')
-            echo "GOOGLE_CREDENTIALS=${{ secrets.TF_SERVICE_ACCOUNT_DEV }}" >>$GITHUB_ENV
+            echo "GOOGLE_CREDENTIALS='${{ secrets.TF_SERVICE_ACCOUNT_DEV }}'" >>$GITHUB_ENV
             ;;
           'prod')
-            echo "GOOGLE_CREDENTIALS=${{ secrets.TF_SERVICE_ACCOUNT_PROD }}" >>$GITHUB_ENV
+            echo "GOOGLE_CREDENTIALS='${{ secrets.TF_SERVICE_ACCOUNT_PROD }}'" >>$GITHUB_ENV
             ;;
           * )
             echo "No credentials configured for environment '${{ matrix.env }}'"
