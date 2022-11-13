@@ -31,13 +31,14 @@ jobs:
       matrix:
         env: ${{ fromJSON(needs.configure.outputs.envs) }}
     concurrency: ${{ github.repository }}:${{ github.workflow }}:${{ matrix.env }}
+    env:
+      GOOGLE_BACKEND_CREDENTIALS: ${{ secrets.TF_SERVICE_ACCOUNT_DEV }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
       - name: Export Credentials
         run: |
-          echo "GOOGLE_BACKEND_CREDENTIALS='${{ secrets.TF_SERVICE_ACCOUNT_DEV }}'" >>$GITHUB_ENV
           case '${{ matrix.env }}' in
           'dev' | 'stage')
             echo "GOOGLE_CREDENTIALS='${{ secrets.TF_SERVICE_ACCOUNT_DEV }}'" >>$GITHUB_ENV
