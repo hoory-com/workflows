@@ -26,8 +26,6 @@ jobs:
         env: ${{ fromJSON(needs.configure.outputs.envs) }}
     concurrency: ${{ github.repository }}:${{ github.workflow }}:${{ matrix.env }}
     env:
-      PROJECT_ID_DEV: ${{ secrets.HOORY_DEV_PROJECT_ID }}
-      PROJECT_ID_PRO: ${{ secrets.HOORY_PROD_PROJECT_ID }}
       TF_SERVICE_ACCOUNT_DEV: ${{ secrets.HOORY_DEV_TF_SERVICE_ACCOUNT }}
       TF_SERVICE_ACCOUNT_PROD: ${{ secrets.HOORY_PROD_TF_SERVICE_ACCOUNT }}
     steps:
@@ -39,11 +37,9 @@ jobs:
           echo "GOOGLE_BACKEND_CREDENTIALS=$TF_SERVICE_ACCOUNT_DEV" >>$GITHUB_ENV
           case '${{ matrix.env }}' in
           'dev' | 'stage')
-            echo "GOOGLE_PROJECT=$PROJECT_ID_DEV" >>$GITHUB_ENV
             echo "GOOGLE_CREDENTIALS=$TF_SERVICE_ACCOUNT_DEV" >>$GITHUB_ENV
             ;;
           'prod')
-            echo "GOOGLE_PROJECT=$PROJECT_ID_PRO" >>$GITHUB_ENV
             echo "GOOGLE_CREDENTIALS=$TF_SERVICE_ACCOUNT_PROD" >>$GITHUB_ENV
             ;;
           * )
@@ -73,10 +69,10 @@ jobs:
         run: terraform init
 
       - name: Terraform select workspace
-        run: terraform workspace select "${{ matrix.env }}" || terraform workspace new "${{ matrix.env }}"
+        run: terraform workspace select '${{ matrix.env }}' || terraform workspace new '${{ matrix.env }}'
 
       - name: Terraform plan
-        run: terraform plan -no-color -out=__plan -var-file="vars/${{ matrix.env }}.tfvars"
+        run: terraform plan -no-color -out=__plan -var-file='vars/${{ matrix.env }}.tfvars'
 
       - name: Terraform apply
         run: terraform apply -no-color __plan
