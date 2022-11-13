@@ -3,9 +3,9 @@ name: Terraform
 on:
   workflow_call:
     secrets:
-      HOORY_DEV_TF_SERVICE_ACCOUNT:
+      TF_SERVICE_ACCOUNT_DEV:
         required: true
-      HOORY_PROD_TF_SERVICE_ACCOUNT:
+      TF_SERVICE_ACCOUNT_PROD:
         required: true
 
 jobs:
@@ -31,22 +31,19 @@ jobs:
       matrix:
         env: ${{ fromJSON(needs.configure.outputs.envs) }}
     concurrency: ${{ github.repository }}:${{ github.workflow }}:${{ matrix.env }}
-    env:
-      TF_SERVICE_ACCOUNT_DEV: ${{ secrets.HOORY_DEV_TF_SERVICE_ACCOUNT }}
-      TF_SERVICE_ACCOUNT_PROD: ${{ secrets.HOORY_PROD_TF_SERVICE_ACCOUNT }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
       - name: Export Credentials
         run: |
-          echo "GOOGLE_BACKEND_CREDENTIALS=$TF_SERVICE_ACCOUNT_DEV" >>$GITHUB_ENV
+          echo "GOOGLE_BACKEND_CREDENTIALS=${{ secrets.TF_SERVICE_ACCOUNT_DEV }}" >>$GITHUB_ENV
           case '${{ matrix.env }}' in
           'dev' | 'stage')
-            echo "GOOGLE_CREDENTIALS=$TF_SERVICE_ACCOUNT_DEV" >>$GITHUB_ENV
+            echo "GOOGLE_CREDENTIALS=${{ secrets.TF_SERVICE_ACCOUNT_DEV }}" >>$GITHUB_ENV
             ;;
           'prod')
-            echo "GOOGLE_CREDENTIALS=$TF_SERVICE_ACCOUNT_PROD" >>$GITHUB_ENV
+            echo "GOOGLE_CREDENTIALS=${{ secrets.TF_SERVICE_ACCOUNT_PROD }}" >>$GITHUB_ENV
             ;;
           * )
             echo "No credentials configured for environment '${{ matrix.env }}'"
