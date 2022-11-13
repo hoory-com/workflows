@@ -31,20 +31,26 @@ jobs:
       matrix:
         env: ${{ fromJSON(needs.configure.outputs.envs) }}
     concurrency: ${{ github.repository }}:${{ github.workflow }}:${{ matrix.env }}
-    env:
-      GOOGLE_BACKEND_CREDENTIALS: ${{ secrets.TF_SERVICE_ACCOUNT_DEV }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
       - name: Export Credentials
         run: |
+          dev_gcp_sa_path='/tmp/gcp-dev.sa.json'
+          prod_gcp_sa_path='/tmp/gcp-prod.sa.json'
+
+          echo '${{ secrets.TF_SERVICE_ACCOUNT_DEV }}' >>$dev_gcp_sa_path
+          echo '${{ secrets.TF_SERVICE_ACCOUNT_PROD }}' >>$prod_gcp_sa_path
+
+          echo "GOOGLE_BACKEND_CREDENTIALS=$dev_gcp_sa_path" >>$GITHUB_ENV
+
           case '${{ matrix.env }}' in
           'dev' | 'stage')
-            echo "GOOGLE_CREDENTIALS='${{ secrets.TF_SERVICE_ACCOUNT_DEV }}'" >>$GITHUB_ENV
+            echo "GOOGLE_CREDENTIALS=$dev_gcp_sa_path" >>$GITHUB_ENV
             ;;
           'prod')
-            echo "GOOGLE_CREDENTIALS='${{ secrets.TF_SERVICE_ACCOUNT_PROD }}'" >>$GITHUB_ENV
+            echo "GOOGLE_CREDENTIALS=$prod_gcp_sa_path" >>$GITHUB_ENV
             ;;
           * )
             echo "No credentials configured for environment '${{ matrix.env }}'"
