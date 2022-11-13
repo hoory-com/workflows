@@ -51,11 +51,11 @@ jobs:
 
           case '${{ matrix.env }}' in
           'dev' | 'stage')
-            echo "GOOGLE_PROJECT=$PROJECT_ID_DEV" >>$GITHUB_ENV
+            echo "GOOGLE_PROJECT=${{ secrets.PROJECT_ID_DEV }}" >>$GITHUB_ENV
             echo "GOOGLE_CREDENTIALS=$dev_gcp_sa_path" >>$GITHUB_ENV
             ;;
           'prod')
-            echo "GOOGLE_PROJECT=$PROJECT_ID_PROD" >>$GITHUB_ENV
+            echo "GOOGLE_PROJECT=${{ secrets.PROJECT_ID_PROD }}" >>$GITHUB_ENV
             echo "GOOGLE_CREDENTIALS=$prod_gcp_sa_path" >>$GITHUB_ENV
             ;;
           * )
