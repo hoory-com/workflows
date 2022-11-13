@@ -7,6 +7,10 @@ on:
         required: true
       TF_SERVICE_ACCOUNT_PROD:
         required: true
+      PROJECT_ID_DEV:
+        required: true
+      PROJECT_ID_PRO:
+        required: true
 
 jobs:
   configure:
@@ -47,9 +51,11 @@ jobs:
 
           case '${{ matrix.env }}' in
           'dev' | 'stage')
+            echo "GOOGLE_PROJECT=$PROJECT_ID_DEV" >>$GITHUB_ENV
             echo "GOOGLE_CREDENTIALS=$dev_gcp_sa_path" >>$GITHUB_ENV
             ;;
           'prod')
+            echo "GOOGLE_PROJECT=$PROJECT_ID_PRO" >>$GITHUB_ENV
             echo "GOOGLE_CREDENTIALS=$prod_gcp_sa_path" >>$GITHUB_ENV
             ;;
           * )
