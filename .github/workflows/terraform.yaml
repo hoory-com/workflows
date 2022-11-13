@@ -1,6 +1,12 @@
 name: Terraform
 
-on: [workflow_call]
+on:
+  workflow_call:
+    secrets:
+      HOORY_DEV_TF_SERVICE_ACCOUNT:
+        required: true
+      HOORY_PROD_TF_SERVICE_ACCOUNT:
+        required: true
 
 jobs:
   configure:
