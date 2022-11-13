@@ -9,7 +9,7 @@ on:
         required: true
       PROJECT_ID_DEV:
         required: true
-      PROJECT_ID_PRO:
+      PROJECT_ID_PROD:
         required: true
 
 jobs:
@@ -55,7 +55,7 @@ jobs:
             echo "GOOGLE_CREDENTIALS=$dev_gcp_sa_path" >>$GITHUB_ENV
             ;;
           'prod')
-            echo "GOOGLE_PROJECT=$PROJECT_ID_PRO" >>$GITHUB_ENV
+            echo "GOOGLE_PROJECT=$PROJECT_ID_PROD" >>$GITHUB_ENV
             echo "GOOGLE_CREDENTIALS=$prod_gcp_sa_path" >>$GITHUB_ENV
             ;;
           * )
