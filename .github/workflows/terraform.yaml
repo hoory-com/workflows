@@ -64,8 +64,9 @@ jobs:
           }
           EOF
 
+      - uses: hashicorp/setup-terraform@v1
+
       - name: Terraform init
-        uses: hashicorp/setup-terraform@v1
         run: terraform init
 
       - name: Terraform select workspace
