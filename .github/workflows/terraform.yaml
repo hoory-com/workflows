@@ -3,8 +3,77 @@ name: Terraform
 on: [workflow_call]
 
 jobs:
-  fmt:
+  configure:
     runs-on: ubuntu-latest
+    outputs:
+      envs: ${{ steps.main.outputs.envs }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
+      - name: Main
+        id: main
+        run: |
+          envs=$(jq -Rsc 'split("\n")[:-1]' <<<"$(find vars -name '*.tfvars' | sed 's|vars/||;s|.tfvars||')")
+          echo "envs=$envs" >> "$GITHUB_OUTPUT"
+
+  terraform:
+    needs: [configure]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        env: ${{ fromJSON(needs.configure.outputs.envs) }}
+    concurrency: ${{ github.repository }}:${{ matrix.env.name }}
+    env:
+      PROJECT_ID_DEV: ${{ secrets.HOORY_DEV_PROJECT_ID }}
+      PROJECT_ID_PRO: ${{ secrets.HOORY_PROD_PROJECT_ID }}
+      TF_SERVICE_ACCOUNT_DEV: ${{ secrets.HOORY_DEV_TF_SERVICE_ACCOUNT }}
+      TF_SERVICE_ACCOUNT_PROD: ${{ secrets.HOORY_PROD_TF_SERVICE_ACCOUNT }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Export Credentials
+        run: |
+          echo "GOOGLE_BACKEND_CREDENTIALS=$TF_SERVICE_ACCOUNT_DEV" >>$GITHUB_ENV
+          case ${{ matrix.env.name }} in
+          'dev' | 'stage')
+              echo "GOOGLE_PROJECT=$PROJECT_ID_DEV" >>$GITHUB_ENV
+              echo "GOOGLE_CREDENTIALS=$TF_SERVICE_ACCOUNT_DEV" >>$GITHUB_ENV
+              ;;
+          'prod')
+              echo "GOOGLE_PROJECT=$PROJECT_ID_PRO" >>$GITHUB_ENV
+              echo "GOOGLE_CREDENTIALS=$TF_SERVICE_ACCOUNT_PROD" >>$GITHUB_ENV
+              ;;
+          esac
+
+      - name: Touch override.tf
+        run: |
+          cat <<EOF > override.tf
+          provider "google" {
+            region  = "eu-west1"
+            zone    = "eu-west1-b"
+          }
+
+          terraform {
+            backend "gcs" {
+              bucket = "tf-state-hoory-com"
+              prefix = "${{ github.repository }}"
+            }
+          }
+          EOF
+
+      - name: Terraform init
+        uses: hashicorp/setup-terraform@v1
+        run: terraform init
+
+      - name: Terraform select workspace
+        run: terraform workspace select "${{ matrix.env.name }}" || terraform workspace new "${{ matrix.env.name }}"
+
+      - name: Terraform plan
+        run: terraform plan -no-color -out=__plan -var-file="vars/${{ matrix.env.name }}.tfvars"
+
+      - name: Terraform apply
+        run: terraform apply -no-color __plan
+        if: ${{ github.ref == 'refs/heads/master' }}

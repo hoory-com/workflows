@@ -11,7 +11,7 @@ jobs:
 
       - uses: hashicorp/setup-terraform@v1
 
-      - name: fmt
+      - name: Format check
         run: terraform fmt -check -recursive
 
       - name: Validate
