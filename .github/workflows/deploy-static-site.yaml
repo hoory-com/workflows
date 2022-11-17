@@ -39,7 +39,7 @@ jobs:
           credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
       - name: Move files to GCP Bucket
-        run: gsutil -m rsync -d -r ./build gs://${{secrets.DOMAIN}}.hoory.cloud
+        run: gsutil -m rsync -d -r ./public gs://${{secrets.DOMAIN}}.hoory.cloud
 
       - name: Extract private package list
         uses: sergeysova/jq-action@v2
