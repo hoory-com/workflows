@@ -24,7 +24,7 @@ jobs:
   deploy:
     name: Deploy ${{ secrets.DOMAIN }} to ${{ secrets.TARGET_ENVIRONMENT }}
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == true
+#     if: github.event.pull_request.merged == true
     env:
       NODE_OPTIONS: "--max_old_space_size=4096"
       CI: false
