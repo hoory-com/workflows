@@ -11,19 +11,22 @@ on:
         required: true
       NPM_PACKAGES_PAT:
         required: true
-      TARGET_ENVIRONMENT:
+      SENTRY_AUTH_TOKEN:
         required: true
       SENTRY_ORG:
         required: true
       DOMAIN:
         required: true
-      SENTRY_AUTH_TOKEN:
+      TARGET_ENVIRONMENT:
         required: true
 
 jobs:
   configure:
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true
+    env:
+      NODE_OPTIONS: "--max_old_space_size=4096"
+      CI: false
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
