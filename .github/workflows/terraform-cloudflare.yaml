@@ -39,8 +39,9 @@ jobs:
 
       - name: Export TF Backend Credentials
         run: |
-          echo '${{ secrets.TF_BACKEND_SERVICE_ACCOUNT }}' >>$dev_gcp_sa_path
-          echo "GOOGLE_BACKEND_CREDENTIALS=$dev_gcp_sa_path" >>$GITHUB_ENV
+          dev_gcp_sa_path='/tmp/gcp-dev.sa.json'
+          echo '${{ secrets.TF_BACKEND_SERVICE_ACCOUNT }}' >> $dev_gcp_sa_path
+          echo "GOOGLE_BACKEND_CREDENTIALS=$dev_gcp_sa_path" >> $GITHUB_ENV
 
       - name: Touch override.tf
         run: |
