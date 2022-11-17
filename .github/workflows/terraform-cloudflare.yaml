@@ -75,7 +75,7 @@ jobs:
         run: terraform workspace select '${{ matrix.env }}' || terraform workspace new '${{ matrix.env }}'
 
       - name: Terraform plan
-        run: terraform plan -no-color -out=__plan -var-file='vars/${{ matrix.env }}.tfvars'
+        run: terraform plan -no-color -out=__plan -var-file='vars/${{ matrix.env }}.tfvars' -var cloudflare_zone_id="${{ secrets.CLOUDFLARE_ZONE_ID }}"
 
       - name: Terraform apply
         run: terraform apply -no-color __plan
