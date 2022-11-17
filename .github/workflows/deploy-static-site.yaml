@@ -1,0 +1,106 @@
+name: Deploy static site
+
+on:
+  workflow_call:
+    secrets:
+      SERVICE_NAME:
+        required: true
+      GCP_SERVICE_ACCOUNT:
+        required: true
+      GITHUB_PAT:
+        required: true
+      NPM_PACKAGES_PAT:
+        required: true
+      TARGET_ENVIRONMENT:
+        required: true
+      SENTRY_ORG:
+        required: true
+      DOMAIN:
+        required: true
+      SENTRY_AUTH_TOKEN:
+        required: true
+
+jobs:
+  configure:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Set up gcloud
+        id: 'auth'
+        uses: 'google-github-actions/auth@v0'
+        with:
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Extract private package list
+        uses: sergeysova/jq-action@v2
+        id: privatePackages
+        with:
+          cmd: 'jq .branches.$GITHUB_BASE_REF[] private-packages.json -r'
+          multiline: true
+      - name: Add private packages PAT
+        run: |
+          echo "@hoory-com:registry=https://npm.pkg.github.com/
+          //npm.pkg.github.com/:_authToken=${{secrets.NPM_PACKAGES_PAT}}" > .npmrc
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Install Private packages
+        run: |
+          packages="${{ steps.privatePackages.outputs.value }}"
+          for package in $packages; do
+            yarn add --frozen-lockfile $package
+          done
+
+      - name: Keep production environment variables file
+        run: find . -name '.env.*' -not -name '.env.production' -delete
+
+      - name: Populate env variables
+        run: node env.js ${{secrets.TARGET_ENVIRONMENT}}
+        env:
+          SENTRY_RELEASE_TAG: "${{ steps.image.outputs.tag }}"
+
+      - name: Build app
+        run: yarn run build
+
+      - name: Move files to storage
+        run: gsutil -m rsync -d -r ./build gs://${{secrets.DOMAIN}}.hoory.cloud
+
+      # Change Deployment state to deploying
+      - uses: chrnorm/deployment-action@releases/v1
+        name: Create GitHub deployment
+        id: deployment
+        with:
+          token: "${{ secrets.GITHUB_PAT }}"
+          environment: "${{ secrets.TARGET_ENVIRONMENT }}"
+
+      # Change Deployment state to success/failure
+      - name: Update deployment status (success)
+        if: success()
+        uses: chrnorm/deployment-status@releases/v1
+        with:
+          token: "${{ secrets.GITHUB_PAT }}"
+          state: "success"
+          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+      - name: Update deployment status (failure)
+        if: failure()
+        uses: chrnorm/deployment-status@releases/v1
+        with:
+          token: "${{ secrets.GITHUB_PAT }}"
+          state: "failure"
+          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+
+      # Keep sentry informed
+      - name: Create Sentry release
+        uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SERVICE_NAME }}
+        with:
+          environment: ${{ secrets.TARGET_ENVIRONMENT }}
+          version: "${{ steps.image.outputs.tag }}"
+          sourcemaps: "./build/js"
