@@ -39,12 +39,7 @@ jobs:
           credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
       - name: Move files to GCP Bucket
-        id: 'upload-files'
-        uses: 'google-github-actions/upload-cloud-storage@v0'
-        with:
-          path: public
-          destination: ${{secrets.DOMAIN}}
-          parent: false
+        run: gsutil -m rsync -d -r ./build gs://${{secrets.DOMAIN}}.hoory.cloud
 
       - name: Extract private package list
         uses: sergeysova/jq-action@v2
