@@ -1,0 +1,144 @@
+name: K8s Deployment
+
+on:
+  workflow_call:
+    secrets:
+      PROJECT_ID:
+        required: true
+      GCR_SERVICE_ACCOUNT:
+        required: true
+      SERVICE_NAME:
+        required: true
+      GCP_SERVICE_ACCOUNT:
+        required: true
+      GKE_CLUSTER:
+        required: true
+      GKE_ZONE:
+        required: true
+      GKE_NAMESPACE:
+        required: true
+      VALUES_REPOSITORY:
+        required: true
+      GITHUB_PAT:
+        required: true
+      TARGET_ENVIRONMENT:
+        required: true
+
+jobs:
+  build-image:
+    name: Build Image
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Login to GCR
+        uses: docker/login-action@v1
+        with:
+          registry: eu.gcr.io
+          username: _json_key
+          password: ${{ secrets.GCR_SERVICE_ACCOUNT }}
+
+      - name: Extract image name and tag
+        id: image
+        run: |
+          echo "::set-output name=tag::$(echo $GITHUB_SHA | head -c7)"
+          echo "::set-output name=repository::$(echo "eu.gcr.io/$PROJECT_ID/$SERVICE_NAME/$TARGET_ENVIRONMENT")"
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@master
+
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-single-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-single-buildx
+
+      - name: Build and push the image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: "${{ steps.image.outputs.repository }}:${{ steps.image.outputs.tag }}"
+          file: ./Dockerfile
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,mode=max,dest=/tmp/.buildx-cache-new
+
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+
+  cd-development:
+    name: CD development
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    needs:
+      - build-image
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Set up gcloud
+        uses: google-github-actions/get-gke-credentials@fb08709ba27618c31c09e014e1d8364b02e5042e
+        with:
+          cluster_name: ${{ secrets.GKE_CLUSTER }}
+          location: ${{ secrets.GKE_ZONE }}
+          credentials: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - uses: chrnorm/deployment-action@releases/v1
+        name: Create GitHub deployment
+        id: deployment
+        with:
+          token: "${{ secrets.GITHUB_PAT }}"
+          environment: "${{ secrets.TARGET_ENVIRONMENT }}"
+
+      - name: Extract image name and tag
+        id: image
+        run: |
+          echo "::set-output name=tag::$(echo $GITHUB_SHA | head -c7)"
+          echo "::set-output name=repository::$(echo "eu.gcr.io/$PROJECT_ID/$SERVICE_NAME/$TARGET_ENVIRONMENT")"
+
+      - name: Pull chart values
+        uses: actions/checkout@v2
+        with:
+          repository: ${{ secrets.VALUES_REPOSITORY }}
+          ref: master
+          path: __values
+          token: ${{ secrets.GITHUB_PAT }}
+
+      - name: Copy chart values
+        run: cp __values/$SERVICE_NAME/$TARGET_ENVIRONMENT/values.yaml .charts/
+
+      - name: Set chart app version
+        run: |
+          sed -i "s/^appVersion:.*$/appVersion: ${{ steps.image.outputs.tag }}/" .charts/Chart.yaml
+
+      - name: Upgrade chart
+        run: |
+          helm upgrade $SERVICE_NAME ./.charts \
+          --install \
+          --namespace $GKE_NAMESPACE --create-namespace \
+          --set image.repository="${{ steps.image.outputs.repository }}" \
+          --set image.tag="${{ steps.image.outputs.tag }}" \
+
+      - name: Update deployment status (success)
+        if: success()
+        uses: chrnorm/deployment-status@releases/v1
+        with:
+          token: "${{ secrets.GITHUB_PAT }}"
+          state: "success"
+          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+
+      - name: Update deployment status (failure)
+        if: failure()
+        uses: chrnorm/deployment-status@releases/v1
+        with:
+          token: "${{ secrets.GITHUB_PAT }}"
+          state: "failure"
+          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
