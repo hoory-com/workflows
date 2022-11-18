@@ -42,6 +42,21 @@ jobs:
           dev_gcp_sa_path='/tmp/gcp-dev.sa.json'
           echo '${{ secrets.TF_BACKEND_SERVICE_ACCOUNT }}' >> $dev_gcp_sa_path
           echo "GOOGLE_BACKEND_CREDENTIALS=$dev_gcp_sa_path" >> $GITHUB_ENV
+          
+          case '${{ matrix.env }}' in
+          'dev' | 'stage')
+            echo "TF_VAR_cloudflare_api_token=${{ secrets.CLOUDFLARE_API_TOKEN }}"
+            echo "TF_VAR_cloudflare_zone_id=${{ secrets.CLOUDFLARE_ZONE_ID }}"
+            ;;
+          'prod')
+            echo "TF_VAR_cloudflare_api_token=${{ secrets.CLOUDFLARE_PROD_API_TOKEN }}"
+            echo "TF_VAR_cloudflare_zone_id=${{ secrets.CLOUDFLARE_PROD_ZONE_ID }}"
+            ;;
+          * )
+            echo "No credentials configured for environment '${{ matrix.env }}'"
+            exit 1
+            ;;
+          esac
 
       - name: Touch override.tf
         run: |
@@ -56,7 +71,7 @@ jobs:
           }
   
           provider "cloudflare" {
-            api_token = "${{ secrets.CLOUDFLARE_API_TOKEN }}"
+            api_token = var.cloudflare_api_token
           }
           
           terraform {
@@ -76,7 +91,7 @@ jobs:
         run: terraform workspace select '${{ matrix.env }}' || terraform workspace new '${{ matrix.env }}'
 
       - name: Terraform plan
-        run: terraform plan -no-color -out=__plan -var-file='vars/${{ matrix.env }}.tfvars' -var cloudflare_zone_id="${{ secrets.CLOUDFLARE_ZONE_ID }}"
+        run: terraform plan -no-color -out=__plan -var-file='vars/${{ matrix.env }}.tfvars'
 
       - name: Terraform apply
         run: terraform apply -no-color __plan
