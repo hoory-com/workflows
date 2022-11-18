@@ -40,7 +40,9 @@ jobs:
 
       - name: Move files to GCP Bucket
         run: |
-          gsutil rm -r gs://admin-dev.hoory.cloud/
+          gcloud storage rm -r gs://admin-dev.hoory.cloud
+          gcloud storage rm -r gs://wizard-dev.hoory.cloud
+          gcloud storage rm -r gs://widget-dev.hoory.cloud
         
       - name: Move files to GCP Bucket
         run: gsutil -m rsync -d -r ./public gs://${{secrets.DOMAIN}}.hoory.cloud
