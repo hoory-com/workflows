@@ -49,12 +49,12 @@ jobs:
           
           case '${{ matrix.env }}' in
           'dev' | 'stage')
-            echo "TF_VAR_cloudflare_api_token=${{ secrets.CLOUDFLARE_API_TOKEN }}"
-            echo "TF_VAR_cloudflare_zone_id=${{ secrets.CLOUDFLARE_ZONE_ID }}"
+            echo "TF_VAR_cloudflare_api_token=${{ secrets.CLOUDFLARE_API_TOKEN }}" >> $GITHUB_ENV
+            echo "TF_VAR_cloudflare_zone_id=${{ secrets.CLOUDFLARE_ZONE_ID }}" >> $GITHUB_ENV
             ;;
           'prod')
-            echo "TF_VAR_cloudflare_api_token=${{ secrets.CLOUDFLARE_PROD_API_TOKEN }}"
-            echo "TF_VAR_cloudflare_zone_id=${{ secrets.CLOUDFLARE_PROD_ZONE_ID }}"
+            echo "TF_VAR_cloudflare_api_token=${{ secrets.CLOUDFLARE_PROD_API_TOKEN }}" >> $GITHUB_ENV
+            echo "TF_VAR_cloudflare_zone_id=${{ secrets.CLOUDFLARE_PROD_ZONE_ID }}" >> $GITHUB_ENV
             ;;
           * )
             echo "No credentials configured for environment '${{ matrix.env }}'"
