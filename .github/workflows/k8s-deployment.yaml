@@ -74,7 +74,7 @@ jobs:
           rm -rf /tmp/.buildx-cache
 
   cd-development:
-    name: Upgrade Chart
+    name: Upgrade chart
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true
     needs:
