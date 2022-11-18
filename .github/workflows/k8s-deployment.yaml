@@ -102,7 +102,7 @@ jobs:
         id: image
         run: |
           echo "::set-output name=tag::$(echo $GITHUB_SHA | head -c7)"
-          echo "::set-output name=repository::$(echo "eu.gcr.io/$PROJECT_ID/$SERVICE_NAME/$TARGET_ENVIRONMENT")"
+          echo "::set-output name=repository::$(echo "eu.gcr.io/${{ secrets.PROJECT_ID }}/${{ secrets.SERVICE_NAME }}/${{ secrets.TARGET_ENVIRONMENT }}")"
 
       - name: Pull chart values
         uses: actions/checkout@v2
