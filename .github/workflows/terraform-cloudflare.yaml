@@ -7,6 +7,10 @@ on:
         required: true
       CLOUDFLARE_ZONE_ID:
         required: true
+      CLOUDFLARE_PROD_API_TOKEN:
+        required: true
+      CLOUDFLARE_PROD_ZONE_ID:
+        required: true
       TF_BACKEND_SERVICE_ACCOUNT:
         required: true
 
