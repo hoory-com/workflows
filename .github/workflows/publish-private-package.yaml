@@ -67,9 +67,6 @@ jobs:
         run: yarn install
 
       # Check format on CI
-      - name: Install formatter
-        run: yarn add global prettier --prefer-offline
-        if: github.event.pull_request.merged == false
       - name: Check format
         run: yarn run format:check
         if: github.event.pull_request.merged == false
