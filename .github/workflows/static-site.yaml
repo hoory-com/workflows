@@ -60,11 +60,6 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: ${{ runner.os }}-yarn-
 
-      # Check code check on CI
-      - name: Check format
-        run: yarn run format:check
-        if: github.event.pull_request.merged == false
-
       # Add private packages
       - name: Add private packages PAT
         run: |
@@ -92,6 +87,11 @@ jobs:
 
       - name: Install dependencies
         run: yarn install
+
+      # Check code check on CI
+      - name: Check format
+        run: yarn run format:check
+        if: github.event.pull_request.merged == false
 
       - name: Keep production environment variables file
         run: find . -name '.env.*' -not -name '.env.production' -delete
