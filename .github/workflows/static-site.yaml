@@ -136,7 +136,9 @@ jobs:
       # Keep sentry informed
       - name: Create Sentry release
         uses: getsentry/action-release@v1
-        if: ${{ github.event.pull_request.merged == true && env.SENTRY_PROJECT_NAME != "" }}
+        if: |
+          env.SENTRY_PROJECT_NAME != "" && 
+          github.event.pull_request.merged == true
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
