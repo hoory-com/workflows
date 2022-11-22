@@ -1,5 +1,4 @@
 name: CI/CD for a static site
-run-name: Deploy to ${{ inputs.deploy_target }} by @${{ github.actor }}
 
 on:
   workflow_call:
@@ -31,6 +30,7 @@ jobs:
         node-version: [16.x]
     env:
       NODE_OPTIONS: "--max_old_space_size=4096"
+      SENTRY_PROJECT_NAME: ${{ secrets.SENTRY_PROJECT_NAME }}
       CI: false
 
     steps:
@@ -104,7 +104,7 @@ jobs:
       - name: Populate env variables
         run: node env.js ${{secrets.TARGET_ENVIRONMENT}}
         env:
-          SENTRY_RELEASE_TAG: "${{ steps.image.outputs.tag }}"
+          SENTRY_RELEASE_TAG: "${{ GITHUB_SHA }}"
 
       - name: Build app
         run: yarn run build
@@ -136,12 +136,12 @@ jobs:
       # Keep sentry informed
       - name: Create Sentry release
         uses: getsentry/action-release@v1
-        if: github.event.pull_request.merged == true && secrets.SENTRY_PROJECT_NAME != ""
+        if: github.event.pull_request.merged == true && SENTRY_PROJECT_NAME != ""
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         with:
           environment: ${{ secrets.TARGET_ENVIRONMENT }}
-          version: "${{ steps.image.outputs.tag }}"
+          version: "${{ GITHUB_SHA }}"
           sourcemaps: "./build/js"
