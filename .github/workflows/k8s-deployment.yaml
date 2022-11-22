@@ -59,6 +59,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-single-buildx
 
+      - name: Add private packages PAT
+        run: |
+          echo "@hoory-com:registry=https://npm.pkg.github.com/
+          //npm.pkg.github.com/:_authToken=${{secrets.GITHUB_PAT}}" > .npmrc
+
       - name: Build and push the image
         uses: docker/build-push-action@v2
         with:
