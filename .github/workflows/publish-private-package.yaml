@@ -17,18 +17,18 @@ jobs:
         protoc-version: [3.14.0]
 
     steps:
+      # Initialize
       - name: Checkout repo
         uses: actions/checkout@v2
-
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
 
+      # Handle caches
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn cache dir)"
-
       - name: Restore cache
         uses: actions/cache@v2
         id: yarn-cache
@@ -38,23 +38,26 @@ jobs:
           restore-keys: ${{ runner.os }}-yarn-
 
       # Add private packages
-      - name: Extract private package list
-        uses: sergeysova/jq-action@v2
-        id: privatePackages
-        with:
-          cmd: 'jq .branches.$GITHUB_BASE_REF[] private-packages.json -r'
-          multiline: true
       - name: Add private packages PAT
         run: |
           echo "@hoory-com:registry=https://npm.pkg.github.com/
           //npm.pkg.github.com/:_authToken=${{secrets.GITHUB_PACKAGES_PAT}}" > .npmrc
       - name: Add Private packages
+        uses: sergeysova/jq-action@v2
         run: |
-          packages="${{ steps.privatePackages.outputs.value }}"
+          packages=$(jq .branches.${GITHUB_BASE_REF}[] ./private-packages.json -r)
           for package in $packages; do
-            echo $(jq '.scripts.$package="latest"' package.json) | jq . | > package.json
+            version="latest"
+            if [[ $package == *":"*  ]]; then
+              packageAndVersion=(${package//:/ })
+              package=${packageAndVersion[0]}
+              version=${packageAndVersion[1]}
+            fi
+            echo "PACKAGE $package:$version"
+            echo $(jq --arg package "$package" --arg version "$version" '.devDependencies[$package]=$version' package.json | jq . ) > package.json
           done
 
+      # Install
       - name: Install dependencies
         run: yarn install
 
@@ -66,6 +69,7 @@ jobs:
         run: yarn run format:check
         if: github.event.pull_request.merged == false
 
+      # Build the app
       - name: Build package
         run: yarn run build
 
