@@ -30,7 +30,7 @@ jobs:
         node-version: [16.x]
     env:
       NODE_OPTIONS: "--max_old_space_size=4096"
-      SENTRY_PROJECT_NAME: ${{ secrets.SENTRY_PROJECT_NAME }}
+      SENTRY_PROJECT_NAME: ${{ secrets.SENTRY_PROJECT }}
       CI: false
 
     steps:
