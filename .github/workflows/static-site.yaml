@@ -104,7 +104,7 @@ jobs:
       - name: Populate env variables
         run: node env.js ${{secrets.TARGET_ENVIRONMENT}}
         env:
-          SENTRY_RELEASE_TAG: "${{ GITHUB_SHA }}"
+          SENTRY_RELEASE_TAG: GITHUB_SHA
 
       - name: Build app
         run: yarn run build
@@ -143,5 +143,5 @@ jobs:
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         with:
           environment: ${{ secrets.TARGET_ENVIRONMENT }}
-          version: "${{ GITHUB_SHA }}"
+          version: GITHUB_SHA
           sourcemaps: "./build/js"
