@@ -1,10 +1,9 @@
 name: CI/CD for a static site
+run-name: Deploy to ${{ inputs.deploy_target }} by @${{ github.actor }}
 
 on:
   workflow_call:
     secrets:
-      SERVICE_NAME:
-        required: true
       GCP_SERVICE_ACCOUNT:
         required: true
       GITHUB_PAT:
@@ -15,8 +14,10 @@ on:
         required: true
       SENTRY_ORG:
         required: true
+      SENTRY_PROJECT:
+        required: false
       DOMAIN:
-        required: true
+        required: false
       TARGET_ENVIRONMENT:
         required: true
 
@@ -135,11 +136,11 @@ jobs:
       # Keep sentry informed
       - name: Create Sentry release
         uses: getsentry/action-release@v1
-        if: github.event.pull_request.merged == true
+        if: github.event.pull_request.merged == true && secrets.SENTRY_PROJECT_NAME != ""
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ secrets.SERVICE_NAME }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         with:
           environment: ${{ secrets.TARGET_ENVIRONMENT }}
           version: "${{ steps.image.outputs.tag }}"
