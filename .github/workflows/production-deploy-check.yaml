@@ -3,7 +3,7 @@ name: Production deployment validation
 on:
   workflow_call:
     secrets:
-      VALID_ACTORS:
+      IS_VALID_ACTOR:
         required: true
 jobs:
   general:
@@ -15,7 +15,7 @@ jobs:
           echo "branch: ${{ github.event.inputs.branch }}"
       - name: Check actor
         run: echo 'You are not allowed to deploy!' && exit 1
-        if: contains(${{ secrets.VALID_ACTORS }}, github.actor) == false
+        if: ${{ secrets.IS_VALID_ACTOR }} == "false"
       - name: Check branch name
         run: echo 'Invalid branch name. The name must matches the pattern "(release|hotfix)/*"' && exit 1
         if: (contains(env.BRANCH, 'release/') || contains(env.BRANCH, 'hotfix/')) == false
