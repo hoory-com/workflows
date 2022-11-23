@@ -61,7 +61,7 @@ jobs:
           PREV_VERSION=$(curl \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{secrets.GITHUB_PACKAGES_PAT}}" \
-            https://api.github.com/orgs/hoory-com/packages/npm/${{secrets.PACKAGE_NAME}}/versions?per_page=1 | jq '.["0"].name')
+            https://api.github.com/orgs/hoory-com/packages/npm/${{secrets.PACKAGE_NAME}}/versions?per_page=1 | jq '.[] | .name')
           NEXTVERSION=$(echo ${PREV_VERSION} | awk -F. -v OFS=. '{$NF += 1 ; print}' | tr -d '"')
           echo $(jq --arg version "$NEXTVERSION" '.version=$version' package.json | jq . ) > package.json
 
