@@ -38,7 +38,7 @@ jobs:
         with:
           cmd: 'jq .branches.develop[] private-packages.json -r'
           multiline: true
-      - name: Install Private packages
+      - name: Add Private packages
         run: |
           packages="${{ steps.privatePackages.outputs.value }}"
           for package in $packages; do
@@ -48,22 +48,12 @@ jobs:
               package=${packageAndVersion[0]}
               version=${packageAndVersion[1]}
             fi
-            echo "PACKAGE $package:$version"
             echo $(jq --arg package "$package" --arg version "$version" '.devDependencies[$package]=$version' package.json | jq . ) > package.json
           done
 
       # Install
       - name: Install dependencies
         run: yarn install
-
-      # Check format on CI
-      - name: Check format
-        run: yarn run format:check
-        if: github.event.pull_request.merged == false
-
-      # Build the app
-      - name: Build package
-        run: yarn run build
 
       # Increase version and push to NPM
       - name: Increase the package version
@@ -75,6 +65,16 @@ jobs:
           NEXTVERSION=$(echo ${PREV_VERSION} | awk -F. -v OFS=. '{$NF += 1 ; print}' | tr -d '"')
           echo $(jq --arg version "$NEXTVERSION" '.version=$version' package.json | jq . ) > package.json
 
+      # Check format on CI
+      - name: Check format
+        run: yarn run format:check
+        if: github.event.pull_request.merged == false
+
+      # Build the app
+      - name: Build package
+        run: yarn run build
+
+      # Publish it on NPM
       - name: Publish package
         if: github.event.pull_request.merged == true
         run: cd lib && npm publish
