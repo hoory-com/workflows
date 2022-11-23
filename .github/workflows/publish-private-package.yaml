@@ -5,7 +5,7 @@ on:
     secrets:
       GITHUB_PACKAGES_PAT:
         required: true
-      PACKAGES_NAME:
+      PACKAGE_NAME:
         required: true
 jobs:
   publish-gpr:
