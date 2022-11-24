@@ -18,7 +18,7 @@ jobs:
       - name: Check actor
         run: echo 'You are not allowed to deploy!' && exit 1
         if: |
-          env.IS_VALID_ACTOR == 'false'
+          env.IS_VALID_ACTOR == false
       - name: Check branch name
         run: echo 'Invalid branch name. The name must matches the pattern "(release|hotfix)/*"' && exit 1
         if: (contains(env.BRANCH, 'release/') || contains(env.BRANCH, 'hotfix/')) == false
