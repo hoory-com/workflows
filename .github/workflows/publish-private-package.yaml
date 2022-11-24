@@ -7,6 +7,8 @@ on:
         required: true
       PACKAGE_NAME:
         required: true
+      PUBLISH_FOLDER:
+        required: true
 jobs:
   publish-gpr:
     name: Publish GPR
@@ -77,4 +79,4 @@ jobs:
       # Publish it on NPM
       - name: Publish package
         if: github.event.pull_request.merged == true
-        run: cd lib && npm publish
+        run: cd ${{ secrets.PUBLISH_FOLDER }} && npm publish
