@@ -140,3 +140,4 @@ jobs:
           environment: ${{ secrets.TARGET_ENVIRONMENT }}
           version: ${{ github.GITHUB_SHA }}
           sourcemaps: "./build/js"
+          ignore_missing: true
