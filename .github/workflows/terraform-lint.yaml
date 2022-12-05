@@ -29,15 +29,8 @@ jobs:
         id: validate
         run: terraform validate -no-color
 
-      - name: Terraform Plan
-        id: plan
-        run: terraform plan -no-color
-        continue-on-error: true
-
       - uses: actions/github-script@v6
         if: github.event_name == 'pull_request'
-        env:
-          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
         with:
           github-token: ${{ secrets.GITHUB_PAT }}
           script: |
@@ -68,16 +61,6 @@ jobs:
             
             </details>
             
-            #### ${emojiStatus('${{ steps.plan.outcome }}')} Terraform Plan 📖
-            
-            <details><summary>Show Plan</summary>
-            
-            \`\`\`\n
-            ${process.env.PLAN}
-            \`\`\`
-            
-            </details>
-            
             *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Workflow: \`${{ github.workflow }}\`*`;
             
             // 3. If we have a comment, update it, otherwise create a new one
@@ -98,7 +81,7 @@ jobs:
             }
             
             // 4. Fail the workflow if one of the steps failed
-            const statuses = ['${{ steps.fmt.outcome }}', '${{ steps.init.outcome }}', '${{ steps.validate.outcome }}', '${{ steps.plan.outcome }}']
+            const statuses = ['${{ steps.fmt.outcome }}', '${{ steps.init.outcome }}', '${{ steps.validate.outcome }}']
             if (statuses.includes("failure")) {
               core.setFailed("Terraform failed, check PR comment for details")
             }
