@@ -138,5 +138,5 @@ jobs:
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         with:
           environment: ${{ secrets.TARGET_ENVIRONMENT }}
-          version: ${{ GITHUB_SHA }}
+          version: ${{ github.GITHUB_SHA }}
           sourcemaps: "./build/js"
