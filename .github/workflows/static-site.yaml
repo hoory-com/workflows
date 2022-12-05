@@ -141,3 +141,4 @@ jobs:
           version: ${{ github.GITHUB_SHA }}
           sourcemaps: "./build/js"
           ignore_missing: true
+          ignore_empty: true
