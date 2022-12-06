@@ -11,10 +11,9 @@ on:
         required: true
       SENTRY_AUTH_TOKEN:
         required: true
-    inputs:
       SENTRY_ORG:
-        type: string
         required: true
+    inputs:
       DOMAIN:
         type: string
         required: true
