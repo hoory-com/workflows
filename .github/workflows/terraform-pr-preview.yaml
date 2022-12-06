@@ -1,0 +1,160 @@
+name: PR Preview Terraform
+
+on:
+  workflow_call:
+    secrets:
+      TF_SERVICE_ACCOUNT_DEV:
+        required: true
+      PROJECT_ID_DEV:
+        required: true
+      CLOUDFLARE_API_TOKEN:
+        required: true
+      CLOUDFLARE_ZONE_ID:
+        required: true
+      GITHUB_PAT:
+        required: true
+    inputs:
+      DOMAIN_PREFIX:
+        type: string
+        default: 'pr-'
+      DOMAIN_SUFFIX:
+        type: string
+        default: '.hoory.cloud'
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_PAT }}
+    steps:
+      - name: Export Credentials
+        run: |
+          dev_gcp_sa_path='/tmp/gcp-dev.sa.json'
+
+          echo '${{ secrets.TF_SERVICE_ACCOUNT_DEV }}' >>$dev_gcp_sa_path
+          echo "GOOGLE_BACKEND_CREDENTIALS=$dev_gcp_sa_path" >>$GITHUB_ENV
+
+          echo "TF_VAR_cloudflare_api_token=${{ secrets.CLOUDFLARE_API_TOKEN }}" >> $GITHUB_ENV
+          echo "TF_VAR_cloudflare_zone_id=${{ secrets.CLOUDFLARE_ZONE_ID }}" >> $GITHUB_ENV 
+          echo "GOOGLE_PROJECT=${{ secrets.PROJECT_ID_DEV }}" >>$GITHUB_ENV
+          echo "GOOGLE_CREDENTIALS=$dev_gcp_sa_path" >>$GITHUB_ENV
+
+      - name: Touch override.tf
+        run: |
+          cat <<EOF > override.tf
+          terraform {
+            required_providers {
+              cloudflare = {
+                source  = "cloudflare/cloudflare"
+                version = "~> 3.0"
+              }
+            }
+          }
+          
+          provider "cloudflare" {
+            api_token = var.cloudflare_api_token
+          }
+          
+          provider "google" {
+            region  = "eu-west1"
+            zone    = "eu-west1-b"
+          }
+          
+          terraform {
+            backend "gcs" {
+              bucket = "tf-state-hoory-com"
+              prefix = "${{ github.repository }}/${{ inputs.DOMAIN_PREFIX }}${{ github.event.pull_request.number }}"
+            }
+          }
+          EOF
+
+      - name: Touch main.tf
+        run: |
+          cat <<EOF > main.tf
+          variable "cloudflare_api_token" {
+            type    = string
+            default = ""
+          }
+            
+          variable "cloudflare_zone_id" {
+            type    = string
+            default = ""
+          }
+
+          # Create PR subdomain
+          module "pr_${{ github.event.pull_request.number }}_domain" {
+            source = "git::https://oauth2:$GH_TOKEN@github.com/hoory-com/infra-domains//modules/record-manager"
+          
+            cloudflare_zone_id        = var.cloudflare_zone_id
+            cloudflare_record_name    = "${{ inputs.DOMAIN_PREFIX }}${{ github.event.pull_request.number }}"
+            cloudflare_record_value   = "c.storage.googleapis.com."
+            cloudflare_record_proxied = true
+          }
+          
+          # Create PR storage
+          module "pr_${{ github.event.pull_request.number }}_storage" {
+            source = "git::https://oauth2:$GH_TOKEN@github.com/hoory-com/infra-storage//modules/static-storage"
+          
+            bucket_name = "${{ inputs.DOMAIN_PREFIX }}${{ github.event.pull_request.number }}${{ inputs.DOMAIN_SUFFIX }}"
+          }
+          EOF
+
+      - uses: hashicorp/setup-terraform@v1
+
+      - name: Terraform init
+        run: terraform init
+
+      - name: Terraform select workspace
+        run: terraform workspace select '${{ inputs.DOMAIN_PREFIX }}${{ github.event.pull_request.number }}' || terraform workspace new 'pr-${{ github.event.pull_request.number }}'
+
+      - name: Terraform plan
+        run: terraform plan -no-color -out=__plan
+        if: github.event.pull_request.merged == false
+
+      - name: Terraform apply
+        run: terraform apply -no-color __plan
+        if: github.event.pull_request.merged == false
+
+      - name: Terraform destroy
+        run: terraform destroy
+        if: github.event.pull_request.merged == true
+
+      - uses: actions/github-script@v6
+        if: github.event_name == 'pull_request'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |            
+            // 1. Retrieve existing bot comments for the PR
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            })
+            const botComment = comments.find(comment => {
+              return comment.user.type === 'Bot' && comment.body.includes('Preview Link')
+            })
+            
+            // 2. Prepare format of the comment
+            const output = `<strong>${{ github.repository }}</strong> infra is ready ⚙️
+            <strong>${{ github.repository }}</strong> deployment is ready ✅️
+            
+            Preview Link: <a href="https://${{ inputs.DOMAIN_PREFIX }}${{ github.event.pull_request.number }}${{ inputs.DOMAIN_SUFFIX }}" target="_blank">Click here to open demo</a>
+                        
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Workflow: \`${{ github.workflow }}\`*`;
+            
+            // 3. If we have a comment, update it, otherwise create a new one
+            if (botComment) {
+              github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: output
+              })
+            } else {
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: output
+              })
+            }
