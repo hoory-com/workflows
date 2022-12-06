@@ -105,7 +105,7 @@ jobs:
         run: terraform init
 
       - name: Terraform select workspace
-        run: terraform workspace select '${{ inputs.DOMAIN_PREFIX }}${{ github.event.pull_request.number }}' || terraform workspace new 'pr-${{ github.event.pull_request.number }}'
+        run: terraform workspace select '${{ inputs.DOMAIN_PREFIX }}${{ github.event.pull_request.number }}' || terraform workspace new '${{ inputs.DOMAIN_PREFIX }}${{ github.event.pull_request.number }}'
 
       - name: Terraform plan
         run: terraform plan -no-color -out=__plan
@@ -117,7 +117,7 @@ jobs:
 
       - name: Terraform destroy
         run: terraform destroy
-        if: github.event.pull_request.merged == true
+        if: github.event.pull_request.merged == true || github.event.pull_request.closed == true
 
       - uses: actions/github-script@v6
         if: github.event_name == 'pull_request'
