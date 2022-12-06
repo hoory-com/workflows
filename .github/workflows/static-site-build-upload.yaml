@@ -140,7 +140,7 @@ jobs:
           github.event.pull_request.merged == true
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ inputs.SENTRY_ORG }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ inputs.SENTRY_PROJECT_NAME }}
         with:
           environment: ${{ inputs.TARGET_ENVIRONMENT }}
