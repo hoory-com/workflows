@@ -116,7 +116,7 @@ jobs:
         if: github.event.pull_request.merged == false
 
       - name: Terraform destroy
-        run: terraform destroy
+        run: terraform destroy -auto-approve
         if: github.event.pull_request.merged == true || github.event.pull_request.closed == true
 
       - uses: actions/github-script@v6
