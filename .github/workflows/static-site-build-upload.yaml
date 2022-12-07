@@ -81,7 +81,7 @@ jobs:
           done
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install
 
       # Run format check on CI
       - name: Check format
