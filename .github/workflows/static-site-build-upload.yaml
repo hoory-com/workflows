@@ -49,11 +49,34 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v2
+      - name: Setup Bun Runtime
+        uses: antongolub/action-setup-bun@v1 # or @v1.x.x
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: yarn
+          # Optional, if empty the latest bun version will be used
+          # Examples: 0.0.77, 0.1.2, >=0.1, *
+          bun-version: 0.1.2
+
+          # Optional, default is 'Jarred-Sumner/bun-releases-for-updater'
+          # Example: oven-sh/misc-test-builds
+          bun-repo: 'Jarred-Sumner/bun-releases-for-updater'
+
+          # Override bunfig.toml inners
+          # Optional. JSON-formatted string as input
+          # See: https://github.com/oven-sh/bun#bunfigtoml
+          bun-config: '{"install: {"production": false}}'
+
+          # Attach $BUN_INSTALL/install/cache to action/cache
+          # Optional, defaults to false
+          cache: true
+
+          # actions/tool-cache provides a cache for the current job only
+          # Use actions/cache to store the bun binary for the whole workflow
+          # Optional, defaults to false
+          cache-bin: true
+
+          # Optional, default is process.platform
+          # Examples: darwin, linux
+          platform: 'linux'
 
       # Add private packages
       - name: Add private packages PAT
@@ -81,7 +104,7 @@ jobs:
           done
 
       - name: Install dependencies
-        run: yarn install
+        run: bun install
 
       # Run format check on CI
       - name: Check format
@@ -106,7 +129,7 @@ jobs:
           SENTRY_RELEASE_TAG: GITHUB_SHA
 
       - name: Build app
-        run: yarn run build
+        run: bun run build
 
       - name: Upload the built application
         uses: "google-github-actions/upload-cloud-storage@v0"
