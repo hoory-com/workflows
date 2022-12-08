@@ -60,7 +60,7 @@ jobs:
           # Example: oven-sh/misc-test-builds
           bun-repo: 'Jarred-Sumner/bun-releases-for-updater'
           
-          bun-config: '{"install: {"scopes": { "@hoory-com": { "token" = "${{secrets.NPM_PACKAGES_PAT}}", url = "https://npm.pkg.github.com/" } }}'
+          bun-config: '{"install": {"scopes": { "@hoory-com": { "token" = "${{secrets.NPM_PACKAGES_PAT}}", url = "https://npm.pkg.github.com/" } } } }'
 
           # Attach $BUN_INSTALL/install/cache to action/cache
           # Optional, defaults to false
