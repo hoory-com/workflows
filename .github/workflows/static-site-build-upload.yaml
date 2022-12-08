@@ -60,11 +60,6 @@ jobs:
           # Example: oven-sh/misc-test-builds
           bun-repo: 'Jarred-Sumner/bun-releases-for-updater'
 
-          # Override bunfig.toml inners
-          # Optional. JSON-formatted string as input
-          # See: https://github.com/oven-sh/bun#bunfigtoml
-          bun-config: '{"install: {"production": false}}'
-
           # Attach $BUN_INSTALL/install/cache to action/cache
           # Optional, defaults to false
           cache: true
@@ -73,10 +68,6 @@ jobs:
           # Use actions/cache to store the bun binary for the whole workflow
           # Optional, defaults to false
           cache-bin: true
-
-          # Optional, default is process.platform
-          # Examples: darwin, linux
-          platform: 'linux'
 
       # Add private packages
       - name: Add private packages PAT
