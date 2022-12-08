@@ -52,23 +52,10 @@ jobs:
       - name: Setup Bun Runtime
         uses: antongolub/action-setup-bun@v1 # or @v1.x.x
         with:
-          # Optional, if empty the latest bun version will be used
-          # Examples: 0.0.77, 0.1.2, >=0.1, *
-          bun-version: 0.1.2
-
-          # Optional, default is 'Jarred-Sumner/bun-releases-for-updater'
-          # Example: oven-sh/misc-test-builds
+          bun-version: 0.3.0
           bun-repo: 'Jarred-Sumner/bun-releases-for-updater'
-          
-          bun-config: '{"install": {"scopes": { "@hoory-com": { "token": "${{secrets.NPM_PACKAGES_PAT}}", "url": "https://npm.pkg.github.com/" } } } }'
-
-          # Attach $BUN_INSTALL/install/cache to action/cache
-          # Optional, defaults to false
+          bun-config: '{"install": {"scopes": { "@hoory-com": { "token": "${{secrets.NPM_PACKAGES_PAT}}", "url": "https://npm.pkg.github.com/" }}}}'
           cache: true
-
-          # actions/tool-cache provides a cache for the current job only
-          # Use actions/cache to store the bun binary for the whole workflow
-          # Optional, defaults to false
           cache-bin: true
 
       # Add private packages
