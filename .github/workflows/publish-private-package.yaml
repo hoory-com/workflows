@@ -2,6 +2,12 @@ name: CI/CD for publishing private packages
 
 on:
   workflow_call:
+    inputs:
+      org_name:
+        description: "Owner/Organization name"
+        required: true
+        type: string
+        default: hoory-com
     secrets:
       GITHUB_PACKAGES_PAT:
         required: true
@@ -9,6 +15,7 @@ on:
         required: true
       PUBLISH_FOLDER:
         required: true
+
 jobs:
   publish-gpr:
     name: Publish GPR
@@ -28,6 +35,11 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
+      - name: Install protoc
+        uses: arduino/setup-protoc@v1
+        with:
+          version: ${{ matrix.protoc-version }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       # Add private packages
       - name: Add private packages PAT
@@ -38,7 +50,7 @@ jobs:
         uses: sergeysova/jq-action@v2
         id: privatePackages
         with:
-          cmd: 'jq .branches.develop[] private-packages.json -r'
+          cmd: "jq .branches.develop[] private-packages.json -r"
           multiline: true
       - name: Add Private packages
         run: |
@@ -80,3 +92,12 @@ jobs:
       - name: Publish package
         if: github.event.pull_request.merged == true
         run: cd ${{ secrets.PUBLISH_FOLDER }} && npm publish
+
+      - name: Delete old versions of package
+        uses: smartsquaregmbh/delete-old-packages@v0.6.0
+        with:
+          keep: 5
+          token: ${{ secrets.GITHUB_PACKAGES_PAT }}
+          org_name: ${{ inputs.org_name }}
+          names: |
+            ${{ secrets.PACKAGE_NAME }}
