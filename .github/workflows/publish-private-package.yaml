@@ -36,7 +36,7 @@ jobs:
         with:
           bun-version: 0.3.0
           bun-repo: 'Jarred-Sumner/bun-releases-for-updater'
-          bun-config: '{"install": {"scopes": { "@hoory-com": { "token": "${{secrets.NPM_PACKAGES_PAT}}", "url": "https://npm.pkg.github.com/" }}}}'
+          bun-config: '{"install": {"scopes": { "@hoory-com": { "token": "${{secrets.GITHUB_PACKAGES_PAT}}", "url": "https://npm.pkg.github.com/" }}}}'
           cache: true
           cache-bin: true
       - name: Install protoc
@@ -85,7 +85,7 @@ jobs:
 
       # Check format on CI
       - name: Check format
-        run: yarn run format:check
+        run: bun run format:check
         if: github.event.pull_request.merged == false
 
       # Build the app
