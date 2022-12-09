@@ -85,7 +85,7 @@ jobs:
 
       # Check format on CI
       - name: Check format
-        run: bun run format:check
+        run: yarn run format:check
         if: github.event.pull_request.merged == false
 
       # Build the app
