@@ -31,11 +31,14 @@ jobs:
       # Initialize
       - name: Checkout repo
         uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+      - name: Setup Bun Runtime
+        uses: antongolub/action-setup-bun@v1 # or @v1.x.x
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: yarn
+          bun-version: 0.3.0
+          bun-repo: 'Jarred-Sumner/bun-releases-for-updater'
+          bun-config: '{"install": {"scopes": { "@hoory-com": { "token": "${{secrets.NPM_PACKAGES_PAT}}", "url": "https://npm.pkg.github.com/" }}}}'
+          cache: true
+          cache-bin: true
       - name: Install protoc
         uses: arduino/setup-protoc@v1
         with:
@@ -68,7 +71,7 @@ jobs:
 
       # Install
       - name: Install dependencies
-        run: yarn install
+        run: bun install
 
       # Increase version and push to NPM
       - name: Increase the package version
@@ -87,7 +90,7 @@ jobs:
 
       # Build the app
       - name: Build package
-        run: yarn run build
+        run: bun run build
 
       # Publish it on NPM
       - name: Publish package
