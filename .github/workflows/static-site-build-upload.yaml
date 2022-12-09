@@ -50,11 +50,14 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v2
+      - name: Setup Bun Runtime
+        uses: antongolub/action-setup-bun@v1 # or @v1.x.x
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: yarn
+          bun-version: 0.3.0
+          bun-repo: 'Jarred-Sumner/bun-releases-for-updater'
+          bun-config: '{"install": {"scopes": { "@hoory-com": { "token": "${{secrets.NPM_PACKAGES_PAT}}", "url": "https://npm.pkg.github.com/" }}}}'
+          cache: true
+          cache-bin: true
 
       # Add private packages
       - name: Add private packages PAT
@@ -82,7 +85,7 @@ jobs:
           done
 
       - name: Install dependencies
-        run: yarn install
+        run: bun install
 
       # Run format check on CI
       - name: Check format
@@ -107,7 +110,7 @@ jobs:
           SENTRY_RELEASE_TAG: GITHUB_SHA
 
       - name: Build app
-        run: yarn run build
+        run: bun run build
 
       - name: Upload the built application
         uses: "google-github-actions/upload-cloud-storage@v0"
