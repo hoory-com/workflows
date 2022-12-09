@@ -20,6 +20,7 @@ jobs:
   publish-gpr:
     name: Publish GPR
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     strategy:
       matrix:
