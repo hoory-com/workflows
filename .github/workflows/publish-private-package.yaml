@@ -5,7 +5,7 @@ on:
     inputs:
       org_name:
         description: "Owner/Organization name"
-        required: true
+        required: false
         type: string
         default: hoory-com
     secrets:
