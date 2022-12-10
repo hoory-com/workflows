@@ -71,7 +71,7 @@ jobs:
 
       # Install
       - name: Install dependencies
-        run: bun install
+        run: bun install -y
 
       # Increase version and push to NPM
       - name: Increase the package version
