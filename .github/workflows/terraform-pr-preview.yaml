@@ -14,6 +14,9 @@ on:
       GITHUB_PAT:
         required: true
     inputs:
+      USE_SURGE:
+        type: boolean
+        default: true
       DOMAIN_PREFIX:
         type: string
         default: 'pr-'
@@ -24,6 +27,7 @@ on:
 jobs:
   terraform:
     runs-on: ubuntu-latest
+    if: inputs.USE_SURGE == 'false'
     timeout-minutes: 10
     env:
       GH_TOKEN: ${{ secrets.GITHUB_PAT }}
@@ -120,6 +124,22 @@ jobs:
         run: terraform destroy -auto-approve
         if: github.event.pull_request.merged == true || github.event.pull_request.closed == true
 
+  surge:
+    runs-on: ubuntu-latest
+    if: inputs.USE_SURGE == 'true'
+    timeout-minutes: 5
+    steps:
+      - name: Deploy to ${{ inputs.DOMAIN_PREFIX }}${{ github.event.pull_request.number }}.surge.sh
+        uses: dswistowski/surge-sh-action@v1
+        if: github.event.pull_request.merged == false
+        with:
+          domain: '${{ inputs.DOMAIN_PREFIX }}${{ github.event.pull_request.number }}.surge.sh'
+          project: './build'
+
+  comment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
       - uses: actions/github-script@v6
         if: github.event_name == 'pull_request'
         with:
