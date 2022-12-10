@@ -110,7 +110,7 @@ jobs:
           SENTRY_RELEASE_TAG: GITHUB_SHA
 
       - name: Build app
-        run: bun run build
+        run: yarn run build
 
       - name: Upload the built application
         uses: "google-github-actions/upload-cloud-storage@v0"

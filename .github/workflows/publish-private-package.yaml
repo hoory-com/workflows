@@ -90,7 +90,7 @@ jobs:
 
       # Build the app
       - name: Build package
-        run: bun run build
+        run: yarn run build
 
       # Publish it on NPM
       - name: Publish package
