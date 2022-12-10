@@ -50,14 +50,11 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
-      - name: Setup Bun Runtime
-        uses: antongolub/action-setup-bun@v1 # or @v1.x.x
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
         with:
-          bun-version: 0.3.0
-          bun-repo: 'Jarred-Sumner/bun-releases-for-updater'
-          bun-config: '{"install": {"scopes": { "@hoory-com": { "token": "${{secrets.NPM_PACKAGES_PAT}}", "url": "https://npm.pkg.github.com/" }}}}'
-          cache: true
-          cache-bin: true
+          node-version: ${{ matrix.node-version }}
+          cache: yarn
 
       # Add private packages
       - name: Add private packages PAT
@@ -85,7 +82,7 @@ jobs:
           done
 
       - name: Install dependencies
-        run: bun install
+        run: yarn install
 
       # Run format check on CI
       - name: Check format
