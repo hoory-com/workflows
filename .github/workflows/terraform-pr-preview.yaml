@@ -27,7 +27,7 @@ on:
 jobs:
   terraform:
     runs-on: ubuntu-latest
-    if: inputs.USE_SURGE == 'false'
+    if: inputs.USE_SURGE == false
     timeout-minutes: 10
     env:
       GH_TOKEN: ${{ secrets.GITHUB_PAT }}
@@ -126,7 +126,7 @@ jobs:
 
   surge:
     runs-on: ubuntu-latest
-    if: inputs.USE_SURGE == 'true'
+    if: inputs.USE_SURGE == true
     timeout-minutes: 5
     steps:
       - name: Deploy to ${{ inputs.DOMAIN_PREFIX }}${{ github.event.pull_request.number }}.surge.sh
@@ -139,6 +139,7 @@ jobs:
   comment:
     runs-on: ubuntu-latest
     timeout-minutes: 3
+    needs: [surge, terraform]
     steps:
       - uses: actions/github-script@v6
         if: github.event_name == 'pull_request'
