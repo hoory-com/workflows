@@ -13,6 +13,10 @@ on:
         required: true
       SENTRY_ORG:
         required: true
+      SURGE_TOKEN:
+        required: true
+      SURGE_EMAIL:
+        required: true
     inputs:
       DOMAIN:
         type: string
@@ -126,6 +130,8 @@ jobs:
         with:
           domain: '${{ inputs.DOMAIN_PREFIX }}${{ github.event.pull_request.number }}.surge.sh'
           project: './build'
+          login: ${{ secrets.SURGE_EMAIL }}
+          token: ${{ secrets.SURGE_TOKEN }}
 
       # Change Deployment state to success/failure
       - name: Update deployment status (success)
