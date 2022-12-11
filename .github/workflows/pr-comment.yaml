@@ -1,0 +1,57 @@
+name: PR Preview Terraform
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_call:
+    inputs:
+      COMMENT_TEXT:
+        description: "Comment text string"
+        type: string
+        default: 'No Provided Text!'
+      SHOULD_UPDATE:
+        description: "Should we update previous comment"
+        type: boolean
+        default: true
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/github-script@v6
+        if: github.event_name == 'pull_request'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            // 1. Retrieve existing bot comments for the PR
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            })
+            const botComment = comments.find(comment => {
+              return comment.user.type === 'Bot'
+            })
+            
+            // 2. Prepare format of the comment
+            const output = ${{ inputs.COMMENT_TEXT }};
+            const needUpdate = ${{ inputs.SHOULD_UPDATE }};
+            
+            // 3. If we have a comment, update it, otherwise create a new one
+            if (botComment && needUpdate) {
+              github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: output
+              })
+            } else {
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: output
+              })
+            }

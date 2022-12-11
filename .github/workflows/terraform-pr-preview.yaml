@@ -128,38 +128,16 @@ jobs:
         if: github.event_name == 'pull_request'
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |            
-            // 1. Retrieve existing bot comments for the PR
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-            })
-            const botComment = comments.find(comment => {
-              return comment.user.type === 'Bot' && comment.body.includes('Preview Link')
-            })
-            
-            // 2. Prepare format of the comment
-            const output = `<strong>${{ github.repository }}</strong> infra is ready ⚙️
-            <strong>${{ github.repository }}</strong> deployment is ready ✅️
-            
-            Preview Link: <a href="https://${{ inputs.DOMAIN_PREFIX }}${{ github.event.pull_request.number }}${{ inputs.DOMAIN_SUFFIX }}" target="_blank">Click here to open demo</a>
-                        
-            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Workflow: \`${{ github.workflow }}\`*`;
-            
-            // 3. If we have a comment, update it, otherwise create a new one
-            if (botComment) {
-              github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: botComment.id,
-                body: output
-              })
-            } else {
-              github.rest.issues.createComment({
-                issue_number: context.issue.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: output
-              })
-            }
+
+  put-comment:
+    needs: [terraform]
+    uses: hoory-com/workflows/.github/workflows/pr-comment.yaml@master
+    with:
+      COMMENT_TEXT: |
+        |
+          <strong>${{ github.repository }}</strong> infra is ready ⚙️
+          <strong>${{ github.repository }}</strong> deployment is ready ✅️
+        
+          Preview Link: <a href="https://${{ inputs.DOMAIN_PREFIX }}${{ github.event.pull_request.number }}${{ inputs.DOMAIN_SUFFIX }}" target="_blank">Click here to open demo</a>
+        
+          *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Workflow: \`${{ github.workflow }}\`*

@@ -106,3 +106,9 @@ jobs:
           org_name: ${{ inputs.org_name }}
           names: |
             ${{ secrets.PACKAGE_NAME }}
+
+  put-comment:
+    needs: [publish-gpr]
+    uses: hoory-com/workflows/.github/workflows/pr-comment.yaml@master
+    with:
+      COMMENT_TEXT: '<strong>${{ github.repository }}</strong> is published! 🥳️ [@sayjeyhi]'
