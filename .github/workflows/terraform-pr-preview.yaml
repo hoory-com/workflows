@@ -132,11 +132,11 @@ jobs:
   put-comment:
     needs: [terraform]
     uses: hoory-com/workflows/.github/workflows/pr-comment.yaml@master
+    if: github.event.pull_request.merged == false
     with:
       COMMENT_TEXT: |
         |
-          <strong>${{ github.repository }}</strong> infra is ready ⚙️
-          <strong>${{ github.repository }}</strong> deployment is ready ✅️
+          <strong>${{ github.repository }}</strong> deployment, infra are ready ⚙️
         
           Preview Link: <a href="https://${{ inputs.DOMAIN_PREFIX }}${{ github.event.pull_request.number }}${{ inputs.DOMAIN_SUFFIX }}" target="_blank">Click here to open demo</a>
         

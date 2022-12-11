@@ -175,6 +175,7 @@ jobs:
   put-comment:
     needs: [main]
     uses: hoory-com/workflows/.github/workflows/pr-comment.yaml@master
+    if: github.event.pull_request.merged == true && inputs.USE_SURGE == true
     with:
       COMMENT_TEXT: |
         |

@@ -110,5 +110,6 @@ jobs:
   put-comment:
     needs: [publish-gpr]
     uses: hoory-com/workflows/.github/workflows/pr-comment.yaml@master
+    if: github.event.pull_request.merged == true
     with:
       COMMENT_TEXT: '<strong>${{ github.repository }}</strong> is published! 🥳️ [@sayjeyhi]'

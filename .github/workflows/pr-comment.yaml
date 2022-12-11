@@ -16,7 +16,7 @@ on:
         type: boolean
         default: true
 jobs:
-  terraform:
+  comment:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
