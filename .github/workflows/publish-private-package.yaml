@@ -76,12 +76,13 @@ jobs:
 
       # Increase version and push to NPM
       - name: Increase the package version
+        id: version
         run: |
           PREV_VERSION=$(curl \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{secrets.GITHUB_PACKAGES_PAT}}" \
             https://api.github.com/orgs/hoory-com/packages/npm/${{secrets.PACKAGE_NAME}}/versions?per_page=1 | jq '.[].name')
-          echo "NEXTVERSION=$(echo ${PREV_VERSION} | awk -F. -v OFS=. '{$NF += 1 ; print}' | tr -d '"')" >> $GITHUB_ENV
+          echo "NEXTVERSION=$(echo ${PREV_VERSION} | awk -F. -v OFS=. '{$NF += 1 ; print}' | tr -d '"')" >> $GITHUB_OUTPUT
           echo $(jq --arg version "$NEXTVERSION" '.version=$version' package.json | jq . ) > package.json
 
       # Check format on CI
@@ -112,4 +113,4 @@ jobs:
     uses: hoory-com/workflows/.github/workflows/pr-comment.yaml@master
     if: github.event.pull_request.merged == true
     with:
-      COMMENT_TEXT: '<strong>@${{ github.repository }} - @${{ env.NEXTVERSION }}</strong> is published! 🥳️ [@${{ github.actor }}]'
+      COMMENT_TEXT: '<strong>@${{ github.repository }} - @${{ jobs.publish-gpr.steps.version.NEXTVERSION }}</strong> is published! 🥳️ [@${{ github.actor }}]'
