@@ -27,6 +27,11 @@ on:
         required: true
       TARGET_ENVIRONMENT:
         required: true
+    inputs:
+      merge_back_to_branch:
+        type: string
+        required: false
+        default: ""
 
 jobs:
   build-image:
@@ -74,6 +79,7 @@ jobs:
         with:
           context: .
           push: true
+          build-args: private_packages_context=${{ github.ref_name }}
           tags: "${{ steps.image.outputs.repository }}:${{ steps.image.outputs.tag }}"
           file: ./Dockerfile
           cache-from: type=local,src=/tmp/.buildx-cache
@@ -83,7 +89,7 @@ jobs:
         run: |
           rm -rf /tmp/.buildx-cache
 
-  cd-development:
+  upgrade-chart:
     name: Upgrade chart
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -153,3 +159,12 @@ jobs:
           token: "${{ secrets.GITHUB_PAT }}"
           state: "failure"
           deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+
+      - name: Create merge back PR
+        if: ${{ inputs.merge_back_to_branch != '' }}
+        uses: repo-sync/pull-request@v2
+        with:
+          github_token: ${{ secrets.GITHUB_PAT }}
+          destination_branch: ${{ inputs.merge_back_to_branch }}
+          pr_title: "[Automated] Merge ${{ github.ref_name }} into ${{ inputs.merge_back_to_branch }}"
+          pr_body: "Automated Pull Request"
