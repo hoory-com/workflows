@@ -130,11 +130,11 @@ jobs:
           path: "./build/"
           parent: false
           destination: "${{ inputs.DOMAIN }}"
-      - name: Deploy to ${{ inputs.DOMAIN_PREFIX }}${{ github.event.pull_request.number }}.surge.sh
+      - name: Deploy to ${{ inputs.SENTRY_PROJECT_NAME }}-${{ github.event.pull_request.number }}.surge.sh
         uses: dswistowski/surge-sh-action@v1
         if: github.event.pull_request.merged == false && inputs.USE_SURGE == true
         with:
-          domain: '${{ inputs.DOMAIN_PREFIX }}${{ github.event.pull_request.number }}.surge.sh'
+          domain: '${{ inputs.SENTRY_PROJECT_NAME }}-${{ github.event.pull_request.number }}.surge.sh'
           project: './build'
           login: ${{ secrets.SURGE_EMAIL }}
           token: ${{ secrets.SURGE_TOKEN }}
@@ -178,10 +178,8 @@ jobs:
     if: github.event.pull_request.merged == false && inputs.USE_SURGE == true
     with:
       COMMENT_TEXT: |
-        |
-          <strong>${{ github.repository }}</strong> infra is ready ⚙️
-          <strong>${{ github.repository }}</strong> deployment is ready ✅️
-        
-          Preview Link: <a href="https://${{ inputs.DOMAIN_PREFIX }}${{ github.event.pull_request.number }}.surge.sh" target="_blank">Click here to open demo</a>
-        
-          *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Workflow: \`${{ github.workflow }}\`*
+        <strong>${{ github.repository }}</strong> infra and deployment are ready 🥳
+      
+        Preview Link: <a href="https://${{ inputs.SENTRY_PROJECT_NAME }}-${{ github.event.pull_request.number }}.surge.sh" target="_blank">Click here to open demo</a>
+      
+        *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Workflow: \`${{ github.workflow }}\`*

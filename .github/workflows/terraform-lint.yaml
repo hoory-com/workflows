@@ -36,21 +36,20 @@ jobs:
   put-comment:
     needs: [lint]
     uses: hoory-com/workflows/.github/workflows/pr-comment.yaml@master
-    if: github.event.pull_request.merged == true && inputs.USE_SURGE == true
+    if: github.event.pull_request.merged == false && inputs.USE_SURGE == true
     with:
       COMMENT_TEXT: |
-        |
-          #### \`${{ jobs.lint.steps.fmt.outcome }}\` Terraform Format and Style 🖌
-          #### \`${{ jobs.lint.steps.init.outcome }}\` Terraform Initialization ⚙️
-          #### \`${{ jobs.lint.steps.validate.outcome }}\` Terraform Validation 🤖
-          <details><summary>Validation Output</summary>
-      
-          \`\`\`\n
-          ${{ steps.validate.outputs.stdout }}
-          \`\`\`
-      
-          </details>
-      
-          *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Workflow: \`${{ github.workflow }}\`*
+        #### \`${{ jobs.lint.steps.fmt.outcome }}\` Terraform Format and Style 🖌
+        #### \`${{ jobs.lint.steps.init.outcome }}\` Terraform Initialization ⚙️
+        #### \`${{ jobs.lint.steps.validate.outcome }}\` Terraform Validation 🤖
+        <details><summary>Validation Output</summary>
+    
+        \`\`\`\n
+        ${{ steps.validate.outputs.stdout }}
+        \`\`\`
+    
+        </details>
+    
+        *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Workflow: \`${{ github.workflow }}\`*
 
 
