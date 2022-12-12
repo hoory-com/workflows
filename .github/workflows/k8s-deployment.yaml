@@ -27,7 +27,7 @@ on:
         required: true
       TARGET_ENVIRONMENT:
         required: true
-    arguments:
+    inputs:
       merge_back_to_branch:
         type: string
         required: false
