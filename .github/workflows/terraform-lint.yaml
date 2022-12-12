@@ -33,23 +33,59 @@ jobs:
         id: validate
         run: terraform validate -no-color
 
-  put-comment:
-    needs: [lint]
-    uses: hoory-com/workflows/.github/workflows/pr-comment.yaml@master
-    if: github.event.pull_request.merged == false && inputs.USE_SURGE == true
-    with:
-      COMMENT_TEXT: |
-        #### \`${{ jobs.lint.steps.fmt.outcome }}\` Terraform Format and Style 🖌
-        #### \`${{ jobs.lint.steps.init.outcome }}\` Terraform Initialization ⚙️
-        #### \`${{ jobs.lint.steps.validate.outcome }}\` Terraform Validation 🤖
-        <details><summary>Validation Output</summary>
-    
-        \`\`\`\n
-        ${{ steps.validate.outputs.stdout }}
-        \`\`\`
-    
-        </details>
-    
-        *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Workflow: \`${{ github.workflow }}\`*
-
-
+      - uses: actions/github-script@v6
+        if: github.event_name == 'pull_request'
+        with:
+          github-token: ${{ secrets.GITHUB_PAT }}
+          script: |
+            // 0. Create helper functions
+            function emojiStatus(status) {
+              return (status === 'success') ? '✅' : '❌'
+            }
+            
+            // 1. Retrieve existing bot comments for the PR
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            })
+            const botComment = comments.find(comment => {
+              return comment.user.type === 'Bot' && comment.body.includes('Terraform Format and Style')
+            })
+            
+            // 2. Prepare format of the comment
+            const output = `#### ${emojiStatus('${{ steps.fmt.outcome }}')} Terraform Format and Style 🖌
+            #### ${emojiStatus('${{ steps.init.outcome }}')} Terraform Initialization ⚙️
+            #### ${emojiStatus('${{ steps.validate.outcome }}')} Terraform Validation 🤖
+            <details><summary>Validation Output</summary>
+            
+            \`\`\`\n
+            ${{ steps.validate.outputs.stdout }}
+            \`\`\`
+            
+            </details>
+            
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Workflow: \`${{ github.workflow }}\`*`;
+            
+            // 3. If we have a comment, update it, otherwise create a new one
+            if (botComment) {
+              github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: output
+              })
+            } else {
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: output
+              })
+            }
+            
+            // 4. Fail the workflow if one of the steps failed
+            const statuses = ['${{ steps.fmt.outcome }}', '${{ steps.init.outcome }}', '${{ steps.validate.outcome }}']
+            if (statuses.includes("failure")) {
+              core.setFailed("Terraform failed, check PR comment for details")
+            }
