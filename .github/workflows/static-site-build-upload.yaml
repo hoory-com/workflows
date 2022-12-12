@@ -21,6 +21,14 @@ on:
         required: true
       SURGE_EMAIL:
         required: true
+      TF_SERVICE_ACCOUNT:
+        required: true
+      PROJECT_ID:
+        required: true
+      CLOUDFLARE_API_TOKEN:
+        required: true
+      CLOUDFLARE_ZONE_ID:
+        required: true
     inputs:
       DOMAIN:
         type: string
@@ -43,8 +51,8 @@ jobs:
     if: inputs.USE_SURGE == false
     uses: hoory-com/workflows/.github/workflows/terraform-pr-preview.yaml@master
     secrets:
-      TF_SERVICE_ACCOUNT_DEV: ${{ secrets.HOORY_DEV_TF_SERVICE_ACCOUNT }}
-      PROJECT_ID_DEV: ${{ secrets.HOORY_DEV_PROJECT_ID }}
+      TF_SERVICE_ACCOUNT: ${{ secrets.TF_SERVICE_ACCOUNT }}
+      PROJECT_ID: ${{ secrets.PROJECT_ID }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
       GITHUB_PAT: ${{ secrets.HOORY_GITHUB_PAT }}

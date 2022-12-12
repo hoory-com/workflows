@@ -7,9 +7,9 @@ concurrency:
 on:
   workflow_call:
     secrets:
-      TF_SERVICE_ACCOUNT_DEV:
+      TF_SERVICE_ACCOUNT:
         required: true
-      PROJECT_ID_DEV:
+      PROJECT_ID:
         required: true
       CLOUDFLARE_API_TOKEN:
         required: true
@@ -36,12 +36,12 @@ jobs:
         run: |
           dev_gcp_sa_path='/tmp/gcp-dev.sa.json'
 
-          echo '${{ secrets.TF_SERVICE_ACCOUNT_DEV }}' >>$dev_gcp_sa_path
+          echo '${{ secrets.TF_SERVICE_ACCOUNT }}' >>$dev_gcp_sa_path
           echo "GOOGLE_BACKEND_CREDENTIALS=$dev_gcp_sa_path" >>$GITHUB_ENV
 
           echo "TF_VAR_cloudflare_api_token=${{ secrets.CLOUDFLARE_API_TOKEN }}" >> $GITHUB_ENV
           echo "TF_VAR_cloudflare_zone_id=${{ secrets.CLOUDFLARE_ZONE_ID }}" >> $GITHUB_ENV 
-          echo "GOOGLE_PROJECT=${{ secrets.PROJECT_ID_DEV }}" >>$GITHUB_ENV
+          echo "GOOGLE_PROJECT=${{ secrets.PROJECT_ID }}" >>$GITHUB_ENV
           echo "GOOGLE_CREDENTIALS=$dev_gcp_sa_path" >>$GITHUB_ENV
 
       - name: Touch override.tf
