@@ -31,7 +31,7 @@ jobs:
             })
             
             // 2. Prepare format of the comment
-            const output = ${{ inputs.COMMENT_TEXT }};
+            const output = `${{ inputs.COMMENT_TEXT }}`;
             const needUpdate = ${{ inputs.SHOULD_UPDATE }};
             
             // 3. If we have a comment, update it, otherwise create a new one
