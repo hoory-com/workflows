@@ -45,6 +45,9 @@ on:
       USE_SURGE:
         type: boolean
         default: true
+      MERGE_BACK_TO_BRANCH:
+        type: string
+        default: develop
 
 jobs:
   preview-infra:
@@ -191,6 +194,15 @@ jobs:
           sourcemaps: "./build/js"
           ignore_missing: true
           ignore_empty: true
+          
+      - name: Create merge back PR
+        if: ${{ inputs.TARGET_ENVIRONMENT == 'production' }}
+        uses: repo-sync/pull-request@v2
+        with:
+          github_token: ${{ secrets.GITHUB_PAT }}
+          destination_branch: ${{ inputs.merge_back_to_branch }}
+          pr_title: "[Automated] Merge ${{ github.ref_name }} into ${{ inputs.merge_back_to_branch }}"
+          pr_body: "Automated Pull Request"
 
   put-comment:
     needs: [main]
