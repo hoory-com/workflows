@@ -104,7 +104,7 @@ jobs:
         with:
           keep: 5
           token: ${{ secrets.GITHUB_PACKAGES_PAT }}
-          org_name: ${{ inputs.org_name }}
+          organization: ${{ inputs.org_name }}
           names: |
             ${{ secrets.PACKAGE_NAME }}
 
