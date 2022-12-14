@@ -105,6 +105,7 @@ jobs:
           keep: 5
           token: ${{ secrets.GITHUB_PACKAGES_PAT }}
           organization: ${{ inputs.org_name }}
+          type: npm
           names: |
             ${{ secrets.PACKAGE_NAME }}
 
