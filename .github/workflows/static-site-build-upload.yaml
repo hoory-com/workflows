@@ -207,7 +207,7 @@ jobs:
           ignore_empty: true
           
       - name: Create merge back PR
-        if: ${{ inputs.TARGET_ENVIRONMENT == 'production' }}
+        if: inputs.TARGET_ENVIRONMENT == 'production' && github.event.pull_request.merged == true
         uses: repo-sync/pull-request@v2
         with:
           github_token: ${{ secrets.GITHUB_PAT }}
